@@ -1,5 +1,5 @@
 const pool = require('../db')
-const {getAllStudents, studentById, checkEmailExists, addStudent, deleteStudent} = require('../queries/Queries')
+const {getAllStudents, studentById, checkEmailExists, addStudent, deleteStudent, updateStudent} = require('../queries/Queries')
 
 const test = (req, res) => {
     return res.json({
@@ -82,10 +82,36 @@ const deleteStudentByEmail = async (req, res) => {
     }
 };
 
+
+const updateStudentById = async (req, res) => {
+    const id = parseInt(req.params.id);
+    const {first_name, second_name, email, dob} = req.body;
+    try {
+        const results = await pool.query(studentById, [id]);
+        if (results.rows.length > 0) {
+            const updateResult = await pool.query(updateStudent, [first_name, second_name, email, dob, id]);
+            return res.status(200).json({
+                message: 'Student updated successfully',
+                student: updateResult.rows
+            });
+        } else {
+            return res.status(404).json({
+                message: 'Student not found'
+            });
+        }
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Cannot update student',
+            error: error.message
+        });
+    }
+}
+
 module.exports = {
     test,
     getStudents,
     getStudentById,
     addStudents,
-    deleteStudentByEmail
+    deleteStudentByEmail,
+    updateStudentById
 }
