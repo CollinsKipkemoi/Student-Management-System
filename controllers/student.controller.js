@@ -1,8 +1,8 @@
 const pool = require('../db')
-const {getAllStudents, studentById, checkEmailExists, addStudent} = require('../queries/Queries')
+const {getAllStudents, studentById, checkEmailExists, addStudent, deleteStudent} = require('../queries/Queries')
 
 const test = (req, res) => {
-    res.json({
+    return res.json({
         message: 'Hello World'
     });
 };
@@ -12,10 +12,9 @@ const getStudents = (req, res) => {
         if (error) {
             throw error;
         }
-        console.log(`results: ${results.rows}`)
 
 
-        res.status(200).json(results.rows);
+        return res.status(200).json(results.rows);
     });
 }
 
@@ -26,10 +25,10 @@ const getStudentById = (req, res) => {
             if (error) {
                 throw error;
             }
-            res.status(200).json(results.rows);
+            return res.status(200).json(results.rows);
         });
     } catch (error) {
-        res.status(404).json({
+        return res.status(404).json({
             message: 'Student not found'
         });
     }
@@ -44,29 +43,52 @@ const addStudents = (req, res) => {
                 throw error;
             }
             if (results.rows.length > 0) {
-                res.status(400).json({
+                return res.status(400).json({
                     message: 'Email already exists'
                 });
-            } else{
+            } else {
                 pool.query(addStudent, [first_name, second_name, email, dob], (error, results) => {
                     if (error) {
                         throw error;
                     }
-                    res.status(201).json(results.rows);
+                    return res.status(201).json(results.rows);
                 });
             }
-        } )
+        })
     } catch (error) {
         res.status(404).json({
-            message: 'Student not found'
+            message: 'Cannot add student'
         });
     }
 }
 
+const deleteStudentByEmail = async (req, res) => {
+    const { email } = req.body;
+    try {
+        const emailCheckResult = await pool.query(checkEmailExists, [email]);
+        if (emailCheckResult.rows.length > 0) {
+            const deleteResult = await pool.query(deleteStudent, [email]);
+            return res.status(200).json({
+                message: 'Student deleted successfully',
+                student: deleteResult.rows
+            });
+        } else {
+            return res.status(404).json({
+                message: 'Student not found'
+            });
+        }
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Cannot delete student',
+            error: error.message
+        });
+    }
+};
 
 module.exports = {
     test,
     getStudents,
     getStudentById,
-    addStudents
+    addStudents,
+    deleteStudentByEmail
 }
