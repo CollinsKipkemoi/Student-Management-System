@@ -7,63 +7,60 @@ const test = (req, res) => {
     });
 };
 
-const getStudents = (req, res) => {
-    pool.query(getAllStudents, (error, results) => {
-        if (error) {
-            throw error;
-        }
-
-
-        return res.status(200).json(results.rows);
-    });
-}
-
-const getStudentById = (req, res) => {
-    const id = parseInt(req.params.id);
+const getStudents = async (req, res) => {
     try {
-        pool.query(studentById, [id], (error, results) => {
-            if (error) {
-                throw error;
-            }
-            return res.status(200).json(results.rows);
-        });
-    } catch (error) {
+        const results = await pool.query(getAllStudents);
+        return res.status(200).json(results.rows);
+    } catch (e) {
         return res.status(404).json({
-            message: 'Student not found'
+            message: 'Cannot retrieve students',
+            error: e.message
         });
     }
-
 }
 
-const addStudents = (req, res) => {
+const getStudentById = async (req, res) => {
+    const id = parseInt(req.params.id);
+    try {
+        const results = await pool.query(studentById, [id]);
+        if (results.rows.length > 0) {
+            return res.status(200).json(results.rows);
+        } else {
+            return res.status(404).json({
+                message: 'Student not found'
+            });
+        }
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Cannot retrieve student',
+            error: error.message
+        });
+    }
+};
+const addStudents = async (req, res) => {
     const {first_name, second_name, email, dob} = req.body
     try {
-        pool.query(checkEmailExists, [email], (error, results) => {
-            if (error) {
-                throw error;
-            }
-            if (results.rows.length > 0) {
-                return res.status(400).json({
-                    message: 'Email already exists'
-                });
-            } else {
-                pool.query(addStudent, [first_name, second_name, email, dob], (error, results) => {
-                    if (error) {
-                        throw error;
-                    }
-                    return res.status(201).json(results.rows);
-                });
-            }
-        })
+        const results = await pool.query(checkEmailExists, [email])
+        if(results.rows.length > 0){
+            return res.status(400).json({
+                message: 'Email already exists'
+            });
+        } else{
+            const results2 = await pool.query(addStudent, [first_name, second_name, email, dob]);
+            return res.status(201).json({
+                message: 'Student added successfully',
+                student: results2.rows
+            });
+        }
     } catch (error) {
-        res.status(404).json({
+        res.status(500).json({
             message: 'Cannot add student'
         });
     }
 }
 
 const deleteStudentByEmail = async (req, res) => {
-    const { email } = req.body;
+    const {email} = req.body;
     try {
         const emailCheckResult = await pool.query(checkEmailExists, [email]);
         if (emailCheckResult.rows.length > 0) {
