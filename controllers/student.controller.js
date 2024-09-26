@@ -38,15 +38,15 @@ const getStudentById = async (req, res) => {
     }
 };
 const addStudents = async (req, res) => {
-    const {first_name, second_name, email, dob} = req.body
+    const {first_name, second_name, email, dob, neptune_id} = req.body
     try {
         const results = await pool.query(checkEmailExists, [email])
-        if(results.rows.length > 0){
+        if (results.rows.length > 0) {
             return res.status(400).json({
                 message: 'Email already exists'
             });
-        } else{
-            const results2 = await pool.query(addStudent, [first_name, second_name, email, dob]);
+        } else {
+            const results2 = await pool.query(addStudent, [first_name, second_name, email, dob, neptune_id]);
             return res.status(201).json({
                 message: 'Student added successfully',
                 student: results2.rows
@@ -71,7 +71,7 @@ const deleteStudentByEmail = async (req, res) => {
             });
         } else {
             return res.status(404).json({
-                message: 'Student not found'
+                message: 'User not found'
             });
         }
     } catch (error) {
@@ -107,11 +107,41 @@ const updateStudentById = async (req, res) => {
     }
 }
 
+const authenticateAdmin = async (req, res) => {
+    try {
+        const {email, neptune} = req.body;
+        const userResult = await pool.query(checkEmailExists, [email]);
+        if (userResult.rows.length > 0) {
+            const user = userResult.rows[0];
+            if (user.neptune_id === neptune) {
+                return res.status(200).json({
+                    message: 'Admin authenticated successfully'
+                });
+            } else {
+                return res.status(401).json({
+                    message: 'Neptune ID does not match'
+                });
+            }
+        } else {
+            return res.status(401).json({
+                message: 'Admin not found'
+            });
+        }
+    } catch (e) {
+        return res.status(500).json({
+            message: 'Cannot authenticate admin!',
+            error: e.message
+        });
+    }
+};
+
+
 module.exports = {
     test,
     getStudents,
     getStudentById,
     addStudents,
     deleteStudentByEmail,
-    updateStudentById
+    updateStudentById,
+    authenticateAdmin
 }
