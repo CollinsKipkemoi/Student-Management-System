@@ -6,7 +6,7 @@ router.get('/students', getStudents);
 router.post('/students', addStudents);
 router.get('/students/:id', getStudentById);
 router.delete('/students/', deleteStudentByEmail);
-router.put('/students/:id', updateStudentById);
+router.put('/students/', updateStudentById);
 
 
 module.exports = router;

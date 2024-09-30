@@ -114,8 +114,10 @@ const success = (req, res) => {
 }
 
 const failure = (req, res) => {
-    return res.json({
-        message: 'Failed to authenticate'
+    const msg = req.flash('error')[0];
+    return res.status(401).json({
+        message: 'Authentication failed',
+        error: msg
     });
 }
 
