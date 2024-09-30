@@ -83,13 +83,13 @@ const deleteStudentByEmail = async (req, res) => {
 };
 
 
-const updateStudentById = async (req, res) => {
-    const id = parseInt(req.params.id);
-    const {first_name, second_name, email, dob} = req.body;
+const updateStudentByEmail = async (req, res) => {
+    const {first_name, second_name, email, dob, neptune_id} = req.body;
     try {
-        const results = await pool.query(studentById, [id]);
+        const results = await pool.query(checkEmailExists, [email]);
+        console.log(results.rows);
         if (results.rows.length > 0) {
-            const updateResult = await pool.query(updateStudent, [first_name, second_name, email, dob, id]);
+            const updateResult = await pool.query(updateStudent, [first_name, second_name, email, dob, neptune_id]);
             return res.status(200).json({
                 message: 'Student updated successfully',
                 student: updateResult.rows
@@ -107,33 +107,17 @@ const updateStudentById = async (req, res) => {
     }
 }
 
-const authenticateAdmin = async (req, res) => {
-    try {
-        const {email, neptune} = req.body;
-        const userResult = await pool.query(checkEmailExists, [email]);
-        if (userResult.rows.length > 0) {
-            const user = userResult.rows[0];
-            if (user.neptune_id === neptune) {
-                return res.status(200).json({
-                    message: 'Admin authenticated successfully'
-                });
-            } else {
-                return res.status(401).json({
-                    message: 'Neptune ID does not match'
-                });
-            }
-        } else {
-            return res.status(401).json({
-                message: 'Admin not found'
-            });
-        }
-    } catch (e) {
-        return res.status(500).json({
-            message: 'Cannot authenticate admin!',
-            error: e.message
-        });
-    }
-};
+const success = (req, res) => {
+    return res.json({
+        message: 'Successfully authenticated'
+    });
+}
+
+const failure = (req, res) => {
+    return res.json({
+        message: 'Failed to authenticate'
+    });
+}
 
 
 module.exports = {
@@ -142,6 +126,7 @@ module.exports = {
     getStudentById,
     addStudents,
     deleteStudentByEmail,
-    updateStudentById,
-    authenticateAdmin
+    updateStudentById: updateStudentByEmail,
+    success,
+    failure
 }
