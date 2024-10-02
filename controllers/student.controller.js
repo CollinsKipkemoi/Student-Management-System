@@ -3,10 +3,25 @@ const jwt = require('jsonwebtoken')
 const {getAllStudents, studentById, checkEmailExists, addStudent, deleteStudent, updateStudent} = require('../queries/Queries')
 
 const test = (req, res) => {
-    return res.json({
-        message: 'Hello World'
-    });
-};
+        const token = req.token;
+        try {
+            jwt.verify(token, process.env.JWT_SECRET, (err, authData) => {
+                if (err) {
+                    return res.status(403).json({
+                        message: 'Forbidden',
+                        error: err.message
+                    });
+                } else {
+                    return res.status(200).json({
+                        message: 'Test route working!',
+                    });
+                }
+            });
+        } catch (e) {
+            return res.status(500).json({});
+        }
+    }
+;
 
 const getStudents = async (req, res) => {
     try {
