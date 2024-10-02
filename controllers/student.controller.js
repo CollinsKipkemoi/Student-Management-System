@@ -110,11 +110,22 @@ const updateStudentByEmail = async (req, res) => {
 
 const success = (req, res) => {
     const user = req.user;
-    console.log("User in the controller: ");
-    console.log(user);
-    return res.json({
-        message: 'Successfully authenticated'
-    });
+    try {
+        const token = jwt.sign(user, process.env.JWT_SECRET, {
+            expiresIn: '1h'
+        });
+        return res.status(200).json({
+            message: 'Authentication successful',
+            token
+        });
+    } catch
+        (e) {
+        return res.status(500).json({
+            message: 'Cannot generate token',
+            error: e.message
+        });
+    }
+
 }
 
 const failure = (req, res) => {
