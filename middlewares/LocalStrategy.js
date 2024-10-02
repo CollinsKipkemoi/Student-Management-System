@@ -14,7 +14,7 @@ passport.use(new LocalStrategy({usernameField: 'email', passwordField: 'neptune'
             console.log(user)
             if (user.neptune_id === password && password === "admin") {
                 return done(null, user);
-            } else if (user.neptune_id === password && password !== "admin"){
+            } else if (user.neptune_id === password && password !== "admin") {
                 return done(null, false, {message: 'You are not an admin'});
             } else {
                 console.log('User not found')
@@ -33,9 +33,17 @@ passport.serializeUser((user, done) => {
     console.log('Serializing user')
 })
 
-passport.deserializeUser((id, done) => {
-    const user = pool.query(studentById, [id])
-    done(null, user)
+passport.deserializeUser(async (id, done) => {
+    try {
+        const user = await pool.query(studentById, [id])
+        if (user.rows.length > 0) {
+            done(null, user.rows[0])
+        } else {
+            done(new Error("User not found"))
+        }
+    } catch (e) {
+        done(e)
+    }
 })
 
 module.exports = passport

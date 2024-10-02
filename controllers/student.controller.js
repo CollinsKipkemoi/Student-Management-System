@@ -1,4 +1,5 @@
 const pool = require('../db')
+const jwt = require('jsonwebtoken')
 const {getAllStudents, studentById, checkEmailExists, addStudent, deleteStudent, updateStudent} = require('../queries/Queries')
 
 const test = (req, res) => {
@@ -108,6 +109,9 @@ const updateStudentByEmail = async (req, res) => {
 }
 
 const success = (req, res) => {
+    const user = req.user;
+    console.log("User in the controller: ");
+    console.log(user);
     return res.json({
         message: 'Successfully authenticated'
     });
