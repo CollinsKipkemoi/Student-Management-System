@@ -3,7 +3,7 @@ const {test, getStudents, getStudentById, addStudents, deleteStudentByEmail, upd
 const checkToken = require('../middlewares/VerifyToken');
 
 router.get('/', checkToken, test);
-router.get('/students', getStudents);
+router.get('/students', checkToken, getStudents);
 router.post('/students', addStudents);
 router.get('/students/:id', getStudentById);
 router.delete('/students/', deleteStudentByEmail);

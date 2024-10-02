@@ -5,7 +5,7 @@ const {getAllStudents, studentById, checkEmailExists, addStudent, deleteStudent,
 const test = (req, res) => {
         const token = req.token;
         try {
-            jwt.verify(token, process.env.JWT_SECRET, (err, authData) => {
+            jwt.verify(token, process.env.JWT_SECRET, (err) => {
                 if (err) {
                     return res.status(403).json({
                         message: 'Forbidden',
@@ -18,15 +18,30 @@ const test = (req, res) => {
                 }
             });
         } catch (e) {
-            return res.status(500).json({});
+            return res.status(500).json({
+                message: 'Cannot verify token',
+                error: e.message
+            });
         }
     }
 ;
 
 const getStudents = async (req, res) => {
+    const token = req.token;
+    console.log("Trying to get students");
+    console.log("Token: " + token);
     try {
-        const results = await pool.query(getAllStudents);
-        return res.status(200).json(results.rows);
+        jwt.verify(token, process.env.JWT_SECRET, async  (err) => {
+            if(err){
+                return res.status(403).json({
+                    message: 'Forbidden',
+                    error: err.message
+                });
+            } else{
+                const results = await pool.query(getAllStudents);
+                return res.status(200).json(results.rows);
+            }
+        })
     } catch (e) {
         return res.status(404).json({
             message: 'Cannot retrieve students',
