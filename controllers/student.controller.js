@@ -72,15 +72,15 @@ const getStudentById = async (req, res) => {
 };
 const addStudents = async (req, res) => {
     const {first_name, second_name, email, dob, neptune_id} = req.body
-    const  token = req.token;
+    const token = req.token;
     try {
         jwt.verify(token, process.env.JWT_SECRET, async (err) => {
-            if(err){
+            if (err) {
                 return res.status(403).json({
                     message: 'Forbidden',
                     error: err.message
                 });
-            } else{
+            } else {
                 const results = await pool.query(checkEmailExists, [email])
                 if (results.rows.length > 0) {
                     return res.status(400).json({
@@ -104,19 +104,29 @@ const addStudents = async (req, res) => {
 
 const deleteStudentByEmail = async (req, res) => {
     const {email} = req.body;
+    const token = req.token;
     try {
-        const emailCheckResult = await pool.query(checkEmailExists, [email]);
-        if (emailCheckResult.rows.length > 0) {
-            const deleteResult = await pool.query(deleteStudent, [email]);
-            return res.status(200).json({
-                message: 'Student deleted successfully',
-                student: deleteResult.rows
-            });
-        } else {
-            return res.status(404).json({
-                message: 'User not found'
-            });
-        }
+        jwt.verify(token, process.env.JWT_SECRET, async (err) => {
+            if (err) {
+                return res.status(403).json({
+                    message: 'Forbidden',
+                    error: err.message
+                });
+            } else {
+                const results = await pool.query(checkEmailExists, [email]);
+                if (results.rows.length > 0) {
+                    const deleteResult = await pool.query(deleteStudent, [email]);
+                    return res.status(200).json({
+                        message: 'Student deleted successfully',
+                        student: deleteResult.rows
+                    });
+                } else {
+                    return res.status(404).json({
+                        message: 'Student not found'
+                    });
+                }
+            }
+        });
     } catch (error) {
         return res.status(500).json({
             message: 'Cannot delete student',
@@ -128,20 +138,30 @@ const deleteStudentByEmail = async (req, res) => {
 
 const updateStudentByEmail = async (req, res) => {
     const {first_name, second_name, email, dob, neptune_id} = req.body;
+    const token = req.token;
     try {
-        const results = await pool.query(checkEmailExists, [email]);
-        console.log(results.rows);
-        if (results.rows.length > 0) {
-            const updateResult = await pool.query(updateStudent, [first_name, second_name, email, dob, neptune_id]);
-            return res.status(200).json({
-                message: 'Student updated successfully',
-                student: updateResult.rows
-            });
-        } else {
-            return res.status(404).json({
-                message: 'Student not found'
-            });
-        }
+        jwt.verify(token, process.env.JWT_SECRET, async (err) => {
+            if (err) {
+                return res.status(403).json({
+                    message: 'Forbidden',
+                    error: err.message
+                });
+            } else {
+                const results = await pool.query(checkEmailExists, [email]);
+                console.log(results.rows);
+                if (results.rows.length > 0) {
+                    const updateResult = await pool.query(updateStudent, [first_name, second_name, email, dob, neptune_id]);
+                    return res.status(200).json({
+                        message: 'Student updated successfully',
+                        student: updateResult.rows
+                    });
+                } else {
+                    return res.status(404).json({
+                        message: 'Student not found'
+                    });
+                }
+            }
+        });
     } catch (error) {
         return res.status(500).json({
             message: 'Cannot update student',

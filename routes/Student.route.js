@@ -5,9 +5,9 @@ const checkToken = require('../middlewares/VerifyToken');
 router.get('/', checkToken, test);
 router.get('/students', checkToken, getStudents);
 router.post('/students', checkToken, addStudents);
-router.get('/students/:id', checkToken,  getStudentById);
-router.delete('/students/', deleteStudentByEmail);
-router.put('/students/', updateStudentById);
+router.get('/students/:id', checkToken, getStudentById);
+router.delete('/students/', checkToken, deleteStudentByEmail);
+router.put('/students/', checkToken, updateStudentById);
 
 
 module.exports = router;
