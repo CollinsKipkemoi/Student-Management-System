@@ -28,16 +28,14 @@ const test = (req, res) => {
 
 const getStudents = async (req, res) => {
     const token = req.token;
-    console.log("Trying to get students");
-    console.log("Token: " + token);
     try {
-        jwt.verify(token, process.env.JWT_SECRET, async  (err) => {
-            if(err){
+        jwt.verify(token, process.env.JWT_SECRET, async (err) => {
+            if (err) {
                 return res.status(403).json({
                     message: 'Forbidden',
                     error: err.message
                 });
-            } else{
+            } else {
                 const results = await pool.query(getAllStudents);
                 return res.status(200).json(results.rows);
             }
@@ -51,16 +49,20 @@ const getStudents = async (req, res) => {
 }
 
 const getStudentById = async (req, res) => {
+    const token = req.token;
     const id = parseInt(req.params.id);
     try {
-        const results = await pool.query(studentById, [id]);
-        if (results.rows.length > 0) {
-            return res.status(200).json(results.rows);
-        } else {
-            return res.status(404).json({
-                message: 'Student not found'
-            });
-        }
+        jwt.verify(token, process.env.JWT_SECRET, async (err) => {
+            if (err) {
+                return res.status(403).json({
+                    message: 'Forbidden',
+                    error: err.message
+                });
+            } else {
+                const results = await pool.query(studentById, [id]);
+                return res.status(200).json(results.rows);
+            }
+        });
     } catch (error) {
         return res.status(500).json({
             message: 'Cannot retrieve student',
@@ -70,19 +72,29 @@ const getStudentById = async (req, res) => {
 };
 const addStudents = async (req, res) => {
     const {first_name, second_name, email, dob, neptune_id} = req.body
+    const  token = req.token;
     try {
-        const results = await pool.query(checkEmailExists, [email])
-        if (results.rows.length > 0) {
-            return res.status(400).json({
-                message: 'Email already exists'
-            });
-        } else {
-            const results2 = await pool.query(addStudent, [first_name, second_name, email, dob, neptune_id]);
-            return res.status(201).json({
-                message: 'Student added successfully',
-                student: results2.rows
-            });
-        }
+        jwt.verify(token, process.env.JWT_SECRET, async (err) => {
+            if(err){
+                return res.status(403).json({
+                    message: 'Forbidden',
+                    error: err.message
+                });
+            } else{
+                const results = await pool.query(checkEmailExists, [email])
+                if (results.rows.length > 0) {
+                    return res.status(400).json({
+                        message: 'Email already exists'
+                    });
+                } else {
+                    const results2 = await pool.query(addStudent, [first_name, second_name, email, dob, neptune_id]);
+                    return res.status(201).json({
+                        message: 'Student added successfully',
+                        student: results2.rows
+                    });
+                }
+            }
+        });
     } catch (error) {
         res.status(500).json({
             message: 'Cannot add student'
